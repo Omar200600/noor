@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>نظام الملاحة والبحث الميداني الحقيقي</title>
+    <title>النظام الميداني الحقيقي</title>
     <style>
         * {
             box-sizing: border-box;
@@ -143,7 +143,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            max-height: 50vh;
+            max-height: 52vh;
             overflow-y: auto;
         }
 
@@ -265,16 +265,21 @@
                 </div>
             </div>
 
-            <!-- خانات الإدخال الحقيقية للهدف -->
             <div class="input-group">
-                <input type="text" id="target-name" placeholder="اسم الشيء أو الشخص المفقود (مثلاً: طفل / غرض)">
+                <input type="text" id="target-name" placeholder="اسم الشيء أو الشخص المفقود">
             </div>
             <div class="input-group">
                 <textarea id="target-desc" placeholder="وصف تفصيلي بالعربية..."></textarea>
             </div>
+
+            <!-- زر جلب الموقع التلقائي مع خانات الإحداثيات -->
             <div class="input-group">
-                <input type="number" id="target-lat" step="any" placeholder="خط العرض الحقيقي (Lat)">
-                <input type="number" id="target-lng" step="any" placeholder="خط الطول الحقيقي (Lng)">
+                <button id="btn-get-current" class="btn" style="background: rgba(0, 255, 136, 0.2); border: 1px solid #00ff88; color: #00ff88;">📍 جلب موقعي الحالي تلقائياً</button>
+            </div>
+
+            <div class="input-group">
+                <input type="number" id="target-lat" step="any" placeholder="خط العرض (Lat)">
+                <input type="number" id="target-lng" step="any" placeholder="خط الطول (Lng)">
             </div>
 
             <div class="input-group">
@@ -330,7 +335,7 @@
                 initOrientation();
                 speak("تم تفعيل الكاميرا والموقع بنجاح.");
             } catch (err) {
-                alert("تعذر تشغيل الكاميرا. تأكد من السماح للأذونات: " + err.message);
+                alert("تعذر تشغيل الكاميرا: " + err.message);
             }
         });
 
@@ -354,6 +359,17 @@
                 );
             }
         }
+
+        // دالة جلب الموقع الحالي تلقائياً
+        document.getElementById('btn-get-current').addEventListener('click', () => {
+            if (userLocation) {
+                document.getElementById('target-lat').value = userLocation.lat;
+                document.getElementById('target-lng').value = userLocation.lng;
+                speak("تم جلب موقعك الحالي بنجاح.");
+            } else {
+                alert("جاري التقاط إشارة الـ GPS، يرجى الانتظار ثوانٍ معدودة...");
+            }
+        });
 
         function initOrientation() {
             if (window.DeviceOrientationEvent) {
@@ -402,7 +418,10 @@
             distanceToTarget = calculateHaversine(userLocation.lat, userLocation.lng, targetLocation.lat, targetLocation.lng);
             targetBearing = calculateBearing(userLocation.lat, userLocation.lng, targetLocation.lat, targetLocation.lng);
 
-            valDistance.textContent = Math.round(distanceToTarget) + ' م';
+            valDistance.textContent = distanceToTarget < 1000 
+                ? Math.round(distanceToTarget) + ' م' 
+                : (distanceToTarget / 1000).toFixed(2) + ' كم';
+
             valBearing.textContent = Math.round(targetBearing) + '°';
 
             const now = Date.now();
@@ -440,7 +459,7 @@
                     ctx.font = "bold 10px Segoe UI";
                     ctx.textAlign = "center";
                     ctx.fillText("📍 هدفك الحقيقي", screenX, centerY + 18);
-                    ctx.fillText(`${Math.round(distanceToTarget)} متر`, screenX, centerY + 30);
+                    ctx.fillText(distanceToTarget < 1000 ? `${Math.round(distanceToTarget)} متر` : `${(distanceToTarget/1000).toFixed(2)} كم`, screenX, centerY + 30);
                 }
                 ctx.restore();
             }
@@ -458,7 +477,7 @@
                 return;
             }
             if (!lat || !lng) {
-                alert("يرجى إدخال خطوط العرض والطول الحقيقية للهدف.");
+                alert("يرجى إدخال الإحداثيات أو اضغط زر جلب موقعي الحالي تلقائياً.");
                 return;
             }
 
