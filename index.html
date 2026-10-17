@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>النظام الميداني البسيط للمفقودات</title>
+    <title>الكاشف الميداني الذكي للمفقودات والتعليم الجغرافي</title>
     <style>
         * {
             box-sizing: border-box;
@@ -60,7 +60,7 @@
         }
 
         .header {
-            background: rgba(5, 11, 20, 0.8);
+            background: rgba(5, 11, 20, 0.85);
             backdrop-filter: blur(8px);
             border: 1px solid rgba(0, 240, 255, 0.3);
             border-radius: 10px;
@@ -107,11 +107,11 @@
 
         .crosshair-container {
             position: absolute;
-            top: 40%;
+            top: 35%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 80px;
-            height: 80px;
+            width: 70px;
+            height: 70px;
             pointer-events: none;
         }
 
@@ -134,9 +134,8 @@
             border-radius: 50%;
         }
 
-        /* لوحة التحكم المصغرة والخفيفة */
         .control-panel {
-            background: rgba(5, 11, 20, 0.9);
+            background: rgba(5, 11, 20, 0.92);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(0, 240, 255, 0.4);
             border-radius: 12px;
@@ -144,7 +143,7 @@
             display: flex;
             flex-direction: column;
             gap: 5px;
-            max-height: 38vh; /* تم تقليل الارتفاع بشكل ممتاز كي لا تحجب الميدان */
+            max-height: 42vh;
             overflow-y: auto;
         }
 
@@ -153,20 +152,15 @@
             gap: 5px;
         }
 
-        input, textarea {
+        input {
             flex: 1;
             background: rgba(0, 20, 40, 0.8);
             border: 1px solid rgba(0, 240, 255, 0.3);
             border-radius: 6px;
-            padding: 5px 8px;
+            padding: 6px 8px;
             color: #fff;
             font-size: 11px;
             outline: none;
-        }
-
-        textarea {
-            resize: none;
-            height: 25px;
         }
 
         .btn {
@@ -234,8 +228,8 @@
     <div class="ui-layer">
         <div class="header interactive">
             <div class="title-box">
-                <h1>الكاشف الميداني البسيط</h1>
-                <span>تتبع أي هدف أو مفقود</span>
+                <h1>الكاشف الميداني المباشر</h1>
+                <span>تتبع بالأماكن، المعالم، والمفقودات</span>
             </div>
             <div id="status-badge" class="status-badge">
                 <div class="status-dot"></div>
@@ -243,14 +237,13 @@
             </div>
         </div>
 
-        <button id="audio-toggle" class="audio-btn interactive" style="position: absolute; top: 65px; left: 10px; background: rgba(5,11,20,0.8); border:1px solid #00f0ff; color:#00f0ff; border-radius:50%; width:30px; height:30px; cursor:pointer;">🔊</button>
+        <button id="audio-toggle" class="audio-btn interactive" style="position: absolute; top: 60px; left: 10px; background: rgba(5,11,20,0.8); border:1px solid #00f0ff; color:#00f0ff; border-radius:50%; width:30px; height:30px; cursor:pointer;">🔊</button>
 
         <div class="crosshair-container">
             <div class="crosshair-ring"></div>
             <div class="crosshair-center"></div>
         </div>
 
-        <!-- اللوحة السفلية المصغرة جداً لتفادي التغطية -->
         <div class="control-panel interactive">
             <div class="telemetry">
                 <div class="tele-box">
@@ -267,31 +260,32 @@
                 </div>
             </div>
 
-            <!-- خانة اسم الهدف والوصف (مفتوحة لجميع الأغراض والأشخاص) -->
+            <!-- خانة البحث بالاسم المباشر (المكان، الحارة، المدينة، أو الشارع) -->
             <div class="input-group">
-                <input type="text" id="target-name" placeholder="اسم الهدف (مثلاً: أداة، طفل، أغنام)">
+                <input type="text" id="search-place-input" placeholder="🔍 اكتب اسم المكان، الحارة، أو المدينة هنا...">
+                <button id="btn-search-place" class="btn" style="background: #00ff88; color:#000;">بحث تلقائي</button>
+            </div>
+
+            <!-- اسم ووصف الهدف الحالي -->
+            <div class="input-group">
+                <input type="text" id="target-name" placeholder="اسم الهدف المحدد (مثلاً: طفل / سيارة / مدرسة)">
                 <button id="btn-qibla" class="btn" style="background: rgba(255,215,0,0.2); border:1px solid gold; color:gold;">🕋 القبلة</button>
             </div>
             
             <div class="input-group">
-                <input type="text" id="target-desc" placeholder="وصف اختياري للهدف...">
+                <input type="text" id="target-desc" placeholder="وصف تفصيلي أو عنوان للمكان...">
                 <label class="btn" style="background: rgba(0, 240, 255, 0.15); border: 1px solid #00f0ff; color: #00f0ff; font-size: 9px; cursor: pointer;">
                     📷 صورة <input type="file" id="target-img-file" accept="image/*" style="display: none;">
                 </label>
             </div>
 
-            <!-- زر جلب الموقع وإمكانية إدخال الإحداثيات -->
+            <!-- حفظ الموقع الحالي مباشرة -->
             <div class="input-group">
                 <button id="btn-get-current" class="btn" style="background: rgba(0, 255, 136, 0.2); border: 1px solid #00ff88; color: #00ff88; flex: 1;">📍 حفظ موقعي الحالي كهدف</button>
             </div>
 
             <div class="input-group">
-                <input type="number" id="target-lat" step="any" placeholder="خط العرض (Lat)">
-                <input type="number" id="target-lng" step="any" placeholder="خط الطول (Lng)">
-            </div>
-
-            <div class="input-group">
-                <button id="btn-start" class="btn" style="flex: 2;">🎯 بدء التتبع</button>
+                <button id="btn-start" class="btn" style="flex: 2;">🎯 بدء التوجيه</button>
                 <button id="btn-clear" class="btn" style="flex: 1; background: #ff0055; color:#fff;">مسح</button>
             </div>
         </div>
@@ -299,8 +293,8 @@
 
     <div id="start-overlay" class="permission-overlay">
         <div style="font-size: 40px;">🧭</div>
-        <h2 style="color:#fff;">النظام الميداني البسيط</h2>
-        <p style="color:#88a0b0; font-size: 11px;">اضغط لبدء تشغيل الكاميرا والموقع الجغرافي للملاحة والتتبع.</p>
+        <h2 style="color:#fff;">النظام الميداني الذكي</h2>
+        <p style="color:#88a0b0; font-size: 11px;">البحث الذكي عن المدن والأماكن وتتبع المفقودات عبر الكاميرا.</p>
         <button id="btn-init-system" class="btn" style="padding: 10px 20px; font-size: 13px;">تشغيل الكاميرا والمستشعرات</button>
     </div>
 
@@ -342,7 +336,7 @@
                 overlay.style.display = 'none';
                 initGPS();
                 initOrientation();
-                speak("تم تفعيل النظام الميداني بنجاح.");
+                speak("تم تفعيل الكاشف الميداني المباشر.");
             } catch (err) {
                 alert("تعذر تشغيل الكاميرا: " + err.message);
             }
@@ -369,10 +363,45 @@
             }
         }
 
+        // محرك البحث التلقائي عن أسماء المدن، الحارات، والأسواق وتحويلها لإحداثيات
+        document.getElementById('btn-search-place').addEventListener('click', async () => {
+            const query = document.getElementById('search-place-input').value;
+            if (!query) {
+                alert("يرجى كتابة اسم المكان، الحارة، أو المدينة للبحث عنها.");
+                return;
+            }
+
+            try {
+                statusText.textContent = "جاري البحث عن المكان...";
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+
+                if (data && data.length > 0) {
+                    const firstResult = data[0];
+                    const lat = parseFloat(firstResult.lat);
+                    const lng = parseFloat(firstResult.lon);
+
+                    targetLocation = { lat, lng };
+                    document.getElementById('target-name').value = firstResult.display_name.split(',')[0];
+                    document.getElementById('target-desc').value = firstResult.display_name;
+
+                    updateNavigation();
+                    speak(`تم إيجاد ${firstResult.display_name.split(',')[0]} وبدء التوجيه المباشر.`);
+                    alert(`تم تحديد مكان: ${firstResult.display_name}`);
+                } else {
+                    alert("لم يتم العثور على المكان، حاول كتابة الاسم مع اسم المدينة (مثال: حي الثورة تعز).");
+                }
+            } catch (err) {
+                alert("حدث خطأ أثناء الاتصال بخدمة الخرائط: " + err.message);
+            } finally {
+                statusText.textContent = "GPS متصل";
+            }
+        });
+
         // زر تحديد القبلة السريع
         document.getElementById('btn-qibla').addEventListener('click', () => {
             document.getElementById('target-name').value = "اتجاه القبلة";
-            document.getElementById('target-desc').value = "الكعبة المشرفة - مكة";
+            document.getElementById('target-desc').value = "الكعبة المشرفة - مكة المكرمة";
             targetLocation = { lat: 21.4225, lng: 39.8262 };
             updateNavigation();
             speak("تم تحديد اتجاه القبلة.");
@@ -394,12 +423,12 @@
         // حفظ الموقع الحالي كهدف
         document.getElementById('btn-get-current').addEventListener('click', () => {
             if (userLocation) {
-                document.getElementById('target-lat').value = userLocation.lat;
-                document.getElementById('target-lng').value = userLocation.lng;
                 targetLocation = { lat: userLocation.lat, lng: userLocation.lng };
-                speak("تم حفظ الموقع الحالي.");
+                document.getElementById('target-name').value = "موقعي المحفوظ";
+                document.getElementById('target-desc').value = `نقطة محفوظة عند الساعة ${new Date().toLocaleTimeString('ar-SA')}`;
+                speak("تم حفظ الموقع الحالي كهدف.");
             } else {
-                alert("جاري التقاط GPS...");
+                alert("جاري التقاط إشارة الـ GPS...");
             }
         });
 
@@ -458,7 +487,7 @@
 
             const now = Date.now();
             if (voiceEnabled && now - lastVoiceTime > 8000) {
-                speak(`المسافة ${Math.round(distanceToTarget)} متراً`);
+                speak(`المسافة المتبقية ${Math.round(distanceToTarget)} متراً`);
                 lastVoiceTime = now;
             }
         }
@@ -467,7 +496,7 @@
             ctx.clearRect(0, 0, canvasElem.width, canvasElem.height);
             if (targetLocation && userLocation) {
                 const centerX = canvasElem.width / 2;
-                const centerY = canvasElem.height / 3; /* رفع نقطة الهدف لأعلى الكاميرا كي لا تحجبها اللوحة السفلية */
+                const centerY = canvasElem.height / 3;
                 const diffAngle = (targetBearing - deviceHeading + 360) % 360;
                 const normalizedAngle = diffAngle > 180 ? diffAngle - 360 : diffAngle;
                 const fov = 60;
@@ -504,34 +533,20 @@
         requestAnimationFrame(renderAROverlay);
 
         document.getElementById('btn-start').addEventListener('click', () => {
-            const name = document.getElementById('target-name').value;
-            const lat = parseFloat(document.getElementById('target-lat').value);
-            const lng = parseFloat(document.getElementById('target-lng').value);
-
-            if (!name) {
-                alert("يرجى كتابة اسم الهدف.");
-                return;
-            }
-            if (lat && lng) {
-                targetLocation = { lat, lng };
-            }
-
             if (!targetLocation) {
-                alert("يرجى تحديد الإحداثيات أو حفظ الموقع الحالي.");
+                alert("يرجى البحث عن مكان أولاً أو الضغط على حفظ موقعي الحالي.");
                 return;
             }
-
             updateNavigation();
-            speak("تم بدء التتبع.");
+            speak("تم بدء التوجيه الميداني.");
         });
 
         document.getElementById('btn-clear').addEventListener('click', () => {
             targetLocation = null;
             targetImageObj = null;
+            document.getElementById('search-place-input').value = '';
             document.getElementById('target-name').value = '';
             document.getElementById('target-desc').value = '';
-            document.getElementById('target-lat').value = '';
-            document.getElementById('target-lng').value = '';
             valDistance.textContent = '-- م';
             valBearing.textContent = '--°';
             speak("تم المسح.");
