@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>نظام الملاحة والبحث بالواقع المعزز (AR Field Finder)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #050b14;
+            color: #00f0ff;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Viewfinder Camera Stream */
+        #camera-feed {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
+        }
+
+        /* AR Canvas Overlay */
+        #ar-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* UI Layer */
+        .ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 15px;
+            pointer-events: none;
+        }
+
+        .interactive {
+            pointer-events: auto;
+        }
+
+        /* Header Bar */
+        .header {
+            background: rgba(5, 11, 20, 0.75);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: 12px;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+        }
+
+        .title-box h1 {
+            font-size: 16px;
+            letter-spacing: 1px;
+            color: #fff;
+            text-shadow: 0 0 8px #00f0ff;
+        }
+
+        .title-box span {
+            font-size: 11px;
+            color: #00f0ff;
+        }
+
+        .status-badge {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 20px;
+            background: rgba(255, 0, 85, 0.2);
+            border: 1px solid #ff0055;
+            color: #ff0055;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-badge.active {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 6px currentColor;
+        }
+
+        /* Center Crosshair */
+        .crosshair-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120px;
+            height: 120px;
+            pointer-events: none;
+        }
+
+        .crosshair-ring {
+            width: 100%;
+            height: 100%;
+            border: 1px dashed rgba(0, 240, 255, 0.4);
+            border-radius: 50%;
+            position: relative;
+            animation: rotateRing 20s linear infinite;
+        }
+
+        @keyframes rotateRing {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .crosshair-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 8px;
+            background: #00f0ff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #00f0ff;
+        }
+
+        /* Controls & Panel */
+        .control-panel {
+            background: rgba(5, 11, 20, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: 16px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        input, select {
+            flex: 1;
+            background: rgba(0, 20, 40, 0.6);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #fff;
+            font-size: 12px;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: #00f0ff;
+            box-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #00f0ff, #0077ff);
+            border: none;
+            border-radius: 8px;
+            color: #000;
+            font-weight: bold;
+            font-size: 12px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn-secondary {
+            background: rgba(0, 240, 255, 0.15);
+            border: 1px solid #00f0ff;
+            color: #00f0ff;
+        }
+
+        /* Telemetry Dashboard */
+        .telemetry {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 240, 255, 0.15);
+        }
+
+        .tele-box {
+            text-align: center;
+        }
+
+        .tele-label {
+            font-size: 9px;
+            color: #88a0b0;
+            margin-bottom: 2px;
+        }
+
+        .tele-val {
+            font-size: 13px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 5px #00f0ff;
+        }
+
+        /* Audio Indicator */
+        .audio-btn {
+            position: absolute;
+            top: 70px;
+            left: 15px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(5, 11, 20, 0.8);
+            border: 1px solid #00f0ff;
+            color: #00f0ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        /* Mobile Calibration Alert */
+        .permission-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 11, 20, 0.95);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            text-align: center;
+            gap: 20px;
+        }
+
+        .permission-overlay h2 {
+            color: #fff;
+            font-size: 20px;
+        }
+
+        .permission-overlay p {
+            color: #88a0b0;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Camera Feed -->
+    <video id="camera-feed" autoplay playsinline muted></video>
+
+    <!-- AR Rendering Canvas -->
+    <canvas id="ar-canvas"></canvas>
+
+    <!-- UI Overlay -->
+    <div class="ui-layer">
+        <!-- Header -->
+        <div class="header interactive">
+            <div class="title-box">
+                <h1>نظام الملاحة AR</h1>
+                <span>كاشف المفقودات والأهداف الميدانية</span>
+            </div>
+            <div id="status-badge" class="status-badge">
+                <div class="status-dot"></div>
+                <span id="status-text">في انتظار GPS</span>
+            </div>
+        </div>
+
+        <button id="audio-toggle" class="audio-btn interactive" title="تفعيل/إيقاف التوجيه الصوتي">🔊</button>
+
+        <!-- Center Aiming Reticle -->
+        <div class="crosshair-container">
+            <div class="crosshair-ring"></div>
+            <div class="crosshair-center"></div>
+        </div>
+
+        <!-- Lower Control Panel -->
+        <div class="control-panel interactive">
+            <!-- Telemetry Stats -->
+            <div class="telemetry">
+                <div class="tele-box">
+                    <div class="tele-label">المسافة للهدف</div>
+                    <div class="tele-val" id="val-distance">-- م</div>
+                </div>
+                <div class="tele-box">
+                    <div class="tele-label">اتجاه الهدف</div>
+                    <div class="tele-val" id="val-bearing">--°</div>
+                </div>
+                <div class="tele-box">
+                    <div class="tele-label">بوصلة الجهاز</div>
+                    <div class="tele-val" id="val-heading">--°</div>
+                </div>
+            </div>
+
+            <!-- Preset Controls -->
+            <div class="input-group">
+                <select id="preset-select">
+                    <option value="custom">-- اختر نوع الهدف --</option>
+                    <option value="child">طفل / شخص مفقود</option>
+                    <option value="item">غرض / مفقودات ثقيلة</option>
+                    <option value="coords">إحداثيات جغرافية مخصصة</option>
+                </select>
+            </div>
+
+            <!-- Custom Coordinates Input -->
+            <div class="input-group" id="coords-inputs" style="display: none;">
+                <input type="number" id="target-lat" step="any" placeholder="خط العرض (Lat)">
+                <input type="number" id="target-lng" step="any" placeholder="خط الطول (Lng)">
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="input-group">
+                <button id="btn-start" class="btn" style="flex: 2;">🎯 تحديد وتتبع الهدف</button>
+                <button id="btn-calibrate" class="btn btn-secondary" style="flex: 1;">🔄 معايرة</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Permission/Start Screen -->
+    <div id="start-overlay" class="permission-overlay">
+        <div style="font-size: 50px;">📡</div>
+        <h2>نظام البحث بالواقع المعزز</h2>
+        <p>يحتاج التطبيق إلى إذن الوصول للكاميرا، الموقع الجغرافي (GPS)، وحساسات الاتجاه لتوفير رؤية حية وتوجيه بصري نحو الهدف.</p>
+        <button id="btn-init-system" class="btn" style="padding: 15px 30px; font-size: 15px;">تشغيل الكاميرا والمستشعرات</button>
+    </div>
+
+    <script>
+        // State variables
+        let userLocation = null;
+        let targetLocation = null;
+        let deviceHeading = 0; // Degrees relative to North
+        let targetBearing = 0; // Angle to target relative to North
+        let distanceToTarget = 0; // In meters
+        let voiceEnabled = true;
+        let lastVoiceTime = 0;
+
+        // Elements
+        const videoElem = document.getElementById('camera-feed');
+        const canvasElem = document.getElementById('ar-canvas');
+        const ctx = canvasElem.getContext('2d');
+        const overlay = document.getElementById('start-overlay');
+        const statusBadge = document.getElementById('status-badge');
+        const statusText = document.getElementById('status-text');
+
+        const valDistance = document.getElementById('val-distance');
+        const valBearing = document.getElementById('val-bearing');
+        const valHeading = document.getElementById('val-heading');
+        const presetSelect = document.getElementById('preset-select');
+        const coordsInputs = document.getElementById('coords-inputs');
+
+        // Resize Canvas
+        function resizeCanvas() {
+            canvasElem.width = window.innerWidth;
+            canvasElem.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // 1. Initialize System & Camera
+        document.getElementById('btn-init-system').addEventListener('click', async () => {
+            try {
+                // Request Camera Stream
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { exact: 'environment' } },
+                    audio: false
+                }).catch(() => {
+                    // Fallback to default video camera
+                    return navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                });
+
+                videoElem.srcObject = stream;
+                overlay.style.display = 'none';
+
+                // Request GPS Tracking
+                initGPS();
+
+                // Request Orientation Tracking
+                initOrientation();
+
+                speak("تم تشغيل النظام. في انتظار تحديد الموقع والهدف.");
+            } catch (err) {
+                alert("تعذر الوصول للكاميرا أو الحساسات: " + err.message);
+            }
+        });
+
+        // 2. GPS Location Tracking
+        function initGPS() {
+            if ('geolocation' in navigator) {
+                navigator.geolocation.watchPosition(
+                    (position) => {
+                        userLocation = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        statusBadge.classList.add('active');
+                        statusText.textContent = "GPS متصل بإنتاجية عالية";
+                        updateNavigation();
+                    },
+                    (err) => {
+                        statusBadge.classList.remove('active');
+                        statusText.textContent = "خطأ في الـ GPS";
+                    },
+                    { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 }
+                );
+            }
+        }
+
+        // 3. Device Orientation / Compass Tracking
+        function initOrientation() {
+            if (window.DeviceOrientationEvent) {
+                // iOS 13+ permission request
+                if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    DeviceOrientationEvent.requestPermission().then(response => {
+                        if (response === 'granted') {
+                            window.addEventListener('deviceorientation', handleOrientation);
+                        }
+                    });
+                } else {
+                    window.addEventListener('deviceorientation', handleOrientation);
+                }
+            }
+        }
+
+        function handleOrientation(event) {
+            // Android / iOS heading logic
+            if (event.webkitCompassHeading) {
+                deviceHeading = event.webkitCompassHeading;
+            } else if (event.alpha !== null) {
+                deviceHeading = 360 - event.alpha;
+            }
+            valHeading.textContent = Math.round(deviceHeading) + '°';
+            updateNavigation();
+        }
+
+        // 4. Calculations: Distance & Bearing (Haversine formula)
+        function calculateHaversine(lat1, lon1, lat2, lon2) {
+            const R = 6371000; // Earth radius in meters
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        function calculateBearing(lat1, lon1, lat2, lon2) {
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const y = Math.sin(dLon) * Math.cos(lat2 * Math.PI / 180);
+            const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
+                      Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos(dLon);
+            let brng = Math.atan2(y, x) * 180 / Math.PI;
+            return (brng + 360) % 360;
+        }
+
+        function updateNavigation() {
+            if (!userLocation || !targetLocation) return;
+
+            distanceToTarget = calculateHaversine(
+                userLocation.lat, userLocation.lng,
+                targetLocation.lat, targetLocation.lng
+            );
+
+            targetBearing = calculateBearing(
+                userLocation.lat, userLocation.lng,
+                targetLocation.lat, targetLocation.lng
+            );
+
+            valDistance.textContent = distanceToTarget < 1000 
+                ? Math.round(distanceToTarget) + ' م' 
+                : (distanceToTarget / 1000).toFixed(2) + ' كم';
+
+            valBearing.textContent = Math.round(targetBearing) + '°';
+
+            // Voice Feedback Trigger
+            const now = Date.now();
+            if (voiceEnabled && now - lastVoiceTime > 8000) {
+                const relativeAngle = (targetBearing - deviceHeading + 360) % 360;
+                let dirText = "للأمام";
+                if (relativeAngle > 30 && relativeAngle < 150) dirText = "إلى اليمين";
+                else if (relativeAngle >= 150 && relativeAngle <= 210) dirText = "للخلف";
+                else if (relativeAngle > 210 && relativeAngle < 330) dirText = "إلى اليسار";
+
+                speak(`الهدف ${dirText}، المسافة المتبقية ${Math.round(distanceToTarget)} متراً`);
+                lastVoiceTime = now;
+            }
+        }
+
+        // 5. Render AR HUD Overlay
+        function renderAROverlay() {
+            ctx.clearRect(0, 0, canvasElem.width, canvasElem.height);
+
+            if (targetLocation) {
+                const centerX = canvasElem.width / 2;
+                const centerY = canvasElem.height / 2;
+
+                // Relative angle between device camera direction and target
+                const diffAngle = (targetBearing - deviceHeading + 360) % 360;
+                // Normalize angle between -180 and 180
+                const normalizedAngle = diffAngle > 180 ? diffAngle - 360 : diffAngle;
+
+                // Map angle to screen X position (Field of View ~ 60 degrees)
+                const fov = 60; 
+                const screenX = centerX + (normalizedAngle / (fov / 2)) * (canvasElem.width / 2);
+
+                // Render AR Marker if inside viewable range
+                ctx.save();
+                if (Math.abs(normalizedAngle) < fov) {
+                    // Marker Dot & Reticle
+                    ctx.beginPath();
+                    ctx.arc(screenX, centerY - 50, 18, 0, Math.PI * 2);
+                    ctx.fillStyle = "rgba(0, 255, 136, 0.3)";
+                    ctx.fill();
+                    ctx.strokeStyle = "#00ff88";
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.arc(screenX, centerY - 50, 6, 0, Math.PI * 2);
+                    ctx.fillStyle = "#00ff88";
+                    ctx.fill();
+
+                    // Marker Label Box
+                    ctx.fillStyle = "rgba(5, 11, 20, 0.85)";
+                    ctx.fillRect(screenX - 60, centerY + 10, 120, 36);
+                    ctx.strokeStyle = "#00ff88";
+                    ctx.strokeRect(screenX - 60, centerY + 10, 120, 36);
+
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "bold 11px Segoe UI";
+                    ctx.textAlign = "center";
+                    ctx.fillText("📍 موقع الهدف", screenX, centerY + 26);
+                    ctx.fillText(`${Math.round(distanceToTarget)} متر`, screenX, centerY + 40);
+                } else {
+                    // Render Directional Arrow on Screen Boundary
+                    const arrowX = normalizedAngle > 0 ? canvasElem.width - 30 : 30;
+                    ctx.beginPath();
+                    ctx.arc(arrowX, centerY, 20, 0, Math.PI * 2);
+                    ctx.fillStyle = "rgba(255, 0, 85, 0.4)";
+                    ctx.fill();
+                    ctx.strokeStyle = "#ff0055";
+                    ctx.stroke();
+
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "16px Segoe UI";
+                    ctx.textAlign = "center";
+                    ctx.fillText(normalizedAngle > 0 ? "➔" : "⬅", arrowX, centerY + 6);
+                }
+                ctx.restore();
+            }
+
+            requestAnimationFrame(renderAROverlay);
+        }
+        requestAnimationFrame(renderAROverlay);
+
+        // 6. UI Handlers
+        presetSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'coords') {
+                coordsInputs.style.display = 'flex';
+            } else {
+                coordsInputs.style.display = 'none';
+            }
+        });
+
+        document.getElementById('btn-start').addEventListener('click', () => {
+            const preset = presetSelect.value;
+            if (preset === 'coords') {
+                const lat = parseFloat(document.getElementById('target-lat').value);
+                const lng = parseFloat(document.getElementById('target-lng').value);
+                if (lat && lng) {
+                    targetLocation = { lat, lng };
+                } else {
+                    alert("يرجى إدخال إحداثيات صالحة.");
+                    return;
+                }
+            } else if (userLocation) {
+                // Generate a demo nearby offset target for testing presets
+                targetLocation = {
+                    lat: userLocation.lat + 0.0004, // Approx 45 meters away
+                    lng: userLocation.lng + 0.0004
+                };
+            } else {
+                alert("في انتظار التقاط موقعك بواسطة ה-GPS...");
+                return;
+            }
+
+            updateNavigation();
+            speak("تم تسجيل الهدف. ابدأ بتحريك الكاميرا للبحث وتتبع المؤشر.");
+        });
+
+        // Audio Voice Synthesis
+        function speak(text) {
+            if (!voiceEnabled || !('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ar-SA';
+            utterance.rate = 1.0;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        document.getElementById('audio-toggle').addEventListener('click', () => {
+            voiceEnabled = !voiceEnabled;
+            document.getElementById('audio-toggle').textContent = voiceEnabled ? "🔊" : "🔇";
+        });
+    </script>
+</body>
+</html>
