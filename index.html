@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>النظام الميداني الشامل للمفقودات والاتجاهات</title>
+    <title>النظام الميداني البسيط للمفقودات</title>
     <style>
         * {
             box-sizing: border-box;
@@ -51,7 +51,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 15px;
+            padding: 10px;
             pointer-events: none;
         }
 
@@ -60,30 +60,30 @@
         }
 
         .header {
-            background: rgba(5, 11, 20, 0.85);
+            background: rgba(5, 11, 20, 0.8);
             backdrop-filter: blur(8px);
             border: 1px solid rgba(0, 240, 255, 0.3);
-            border-radius: 12px;
-            padding: 10px 15px;
+            border-radius: 10px;
+            padding: 8px 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         .title-box h1 {
-            font-size: 14px;
+            font-size: 13px;
             color: #fff;
         }
 
         .title-box span {
-            font-size: 10px;
+            font-size: 9px;
             color: #00ff88;
         }
 
         .status-badge {
-            font-size: 10px;
-            padding: 4px 8px;
-            border-radius: 20px;
+            font-size: 9px;
+            padding: 3px 6px;
+            border-radius: 15px;
             background: rgba(255, 0, 85, 0.2);
             border: 1px solid #ff0055;
             color: #ff0055;
@@ -107,11 +107,11 @@
 
         .crosshair-container {
             position: absolute;
-            top: 50%;
+            top: 40%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 100px;
-            height: 100px;
+            width: 80px;
+            height: 80px;
             pointer-events: none;
         }
 
@@ -128,36 +128,37 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 6px;
-            height: 6px;
+            width: 5px;
+            height: 5px;
             background: #00f0ff;
             border-radius: 50%;
         }
 
+        /* لوحة التحكم المصغرة والخفيفة */
         .control-panel {
-            background: rgba(5, 11, 20, 0.95);
+            background: rgba(5, 11, 20, 0.9);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(0, 240, 255, 0.4);
-            border-radius: 16px;
-            padding: 10px;
+            border-radius: 12px;
+            padding: 8px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            max-height: 55vh;
+            gap: 5px;
+            max-height: 38vh; /* تم تقليل الارتفاع بشكل ممتاز كي لا تحجب الميدان */
             overflow-y: auto;
         }
 
         .input-group {
             display: flex;
-            gap: 6px;
+            gap: 5px;
         }
 
-        input, select, textarea {
+        input, textarea {
             flex: 1;
             background: rgba(0, 20, 40, 0.8);
             border: 1px solid rgba(0, 240, 255, 0.3);
-            border-radius: 8px;
-            padding: 6px 8px;
+            border-radius: 6px;
+            padding: 5px 8px;
             color: #fff;
             font-size: 11px;
             outline: none;
@@ -165,22 +166,22 @@
 
         textarea {
             resize: none;
-            height: 30px;
+            height: 25px;
         }
 
         .btn {
             background: linear-gradient(135deg, #00f0ff, #0077ff);
             border: none;
-            border-radius: 8px;
+            border-radius: 6px;
             color: #000;
             font-weight: bold;
-            font-size: 11px;
-            padding: 7px 10px;
+            font-size: 10px;
+            padding: 6px 8px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 4px;
+            gap: 3px;
         }
 
         .telemetry {
@@ -188,8 +189,8 @@
             grid-template-columns: repeat(3, 1fr);
             gap: 4px;
             background: rgba(0, 0, 0, 0.5);
-            padding: 5px;
-            border-radius: 6px;
+            padding: 4px;
+            border-radius: 5px;
         }
 
         .tele-box {
@@ -202,7 +203,7 @@
         }
 
         .tele-val {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: bold;
             color: #fff;
         }
@@ -219,9 +220,9 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 30px;
+            padding: 20px;
             text-align: center;
-            gap: 15px;
+            gap: 12px;
         }
     </style>
 </head>
@@ -233,8 +234,8 @@
     <div class="ui-layer">
         <div class="header interactive">
             <div class="title-box">
-                <h1>النظام الميداني الشامل</h1>
-                <span>مفقودات، مواشي، قبلة، اتجاهات</span>
+                <h1>الكاشف الميداني البسيط</h1>
+                <span>تتبع أي هدف أو مفقود</span>
             </div>
             <div id="status-badge" class="status-badge">
                 <div class="status-dot"></div>
@@ -242,17 +243,18 @@
             </div>
         </div>
 
-        <button id="audio-toggle" class="audio-btn interactive" style="position: absolute; top: 75px; left: 15px; background: rgba(5,11,20,0.8); border:1px solid #00f0ff; color:#00f0ff; border-radius:50%; width:35px; height:35px; cursor:pointer;">🔊</button>
+        <button id="audio-toggle" class="audio-btn interactive" style="position: absolute; top: 65px; left: 10px; background: rgba(5,11,20,0.8); border:1px solid #00f0ff; color:#00f0ff; border-radius:50%; width:30px; height:30px; cursor:pointer;">🔊</button>
 
         <div class="crosshair-container">
             <div class="crosshair-ring"></div>
             <div class="crosshair-center"></div>
         </div>
 
+        <!-- اللوحة السفلية المصغرة جداً لتفادي التغطية -->
         <div class="control-panel interactive">
             <div class="telemetry">
                 <div class="tele-box">
-                    <div class="tele-label">المسافة الحقيقية</div>
+                    <div class="tele-label">المسافة</div>
                     <div class="tele-val" id="val-distance">-- م</div>
                 </div>
                 <div class="tele-box">
@@ -260,38 +262,25 @@
                     <div class="tele-val" id="val-bearing">--°</div>
                 </div>
                 <div class="tele-box">
-                    <div class="tele-label">بوصلة الجهاز</div>
+                    <div class="tele-label">البوصلة</div>
                     <div class="tele-val" id="val-heading">--°</div>
                 </div>
             </div>
 
-            <!-- قائمة اختيار الفئة أو الهدف -->
+            <!-- خانة اسم الهدف والوصف (مفتوحة لجميع الأغراض والأشخاص) -->
             <div class="input-group">
-                <select id="target-category">
-                    <option value="custom">-- اختر تصنيف الهدف --</option>
-                    <option value="qibla">🕋 اتجاه القبلة (مكة المكرمة)</option>
-                    <option value="livestock">🐑 مواشي ضائعة (أغنام / إبل)</option>
-                    <option value="documents">📁 أوراق أو كيس نقود مفقود</option>
-                    <option value="person">👤 شخص / طفل مفقود</option>
-                    <option value="school">🏫 مدرسة أو معهد</option>
-                </select>
-            </div>
-
-            <div class="input-group">
-                <input type="text" id="target-name" placeholder="اسم الهدف (مثلاً: قطيع أغنام / كيس وثائق)">
+                <input type="text" id="target-name" placeholder="اسم الهدف (مثلاً: أداة، طفل، أغنام)">
+                <button id="btn-qibla" class="btn" style="background: rgba(255,215,0,0.2); border:1px solid gold; color:gold;">🕋 القبلة</button>
             </div>
             
             <div class="input-group">
-                <textarea id="target-desc" placeholder="وصف تفصيلي بالعربية (اللون، العلامات)..."></textarea>
-            </div>
-
-            <!-- إرفاق صورة الهدف -->
-            <div class="input-group">
-                <label class="btn" style="background: rgba(0, 240, 255, 0.15); border: 1px solid #00f0ff; color: #00f0ff; flex: 1; font-size: 10px; cursor: pointer; padding: 6px;">
-                    📷 إرفاق صورة الهدف <input type="file" id="target-img-file" accept="image/*" style="display: none;">
+                <input type="text" id="target-desc" placeholder="وصف اختياري للهدف...">
+                <label class="btn" style="background: rgba(0, 240, 255, 0.15); border: 1px solid #00f0ff; color: #00f0ff; font-size: 9px; cursor: pointer;">
+                    📷 صورة <input type="file" id="target-img-file" accept="image/*" style="display: none;">
                 </label>
             </div>
 
+            <!-- زر جلب الموقع وإمكانية إدخال الإحداثيات -->
             <div class="input-group">
                 <button id="btn-get-current" class="btn" style="background: rgba(0, 255, 136, 0.2); border: 1px solid #00ff88; color: #00ff88; flex: 1;">📍 حفظ موقعي الحالي كهدف</button>
             </div>
@@ -302,17 +291,17 @@
             </div>
 
             <div class="input-group">
-                <button id="btn-start" class="btn" style="flex: 2;">🎯 بدء التوجيه الميداني</button>
-                <button id="btn-clear" class="btn" style="flex: 1; background: #ff0055; color:#fff;">إعادة ضبط</button>
+                <button id="btn-start" class="btn" style="flex: 2;">🎯 بدء التتبع</button>
+                <button id="btn-clear" class="btn" style="flex: 1; background: #ff0055; color:#fff;">مسح</button>
             </div>
         </div>
     </div>
 
     <div id="start-overlay" class="permission-overlay">
-        <div style="font-size: 45px;">🧭</div>
-        <h2 style="color:#fff;">النظام الميداني الشامل</h2>
-        <p style="color:#88a0b0; font-size: 12px;">يتطلب النظام إذن الكاميرا والموقع الجغرافي (GPS) لخدمة تتبع المفقودات وتحديد الاتجاهات والقبلة.</p>
-        <button id="btn-init-system" class="btn" style="padding: 12px 25px; font-size: 14px;">تشغيل الكاميرا والمستشعرات</button>
+        <div style="font-size: 40px;">🧭</div>
+        <h2 style="color:#fff;">النظام الميداني البسيط</h2>
+        <p style="color:#88a0b0; font-size: 11px;">اضغط لبدء تشغيل الكاميرا والموقع الجغرافي للملاحة والتتبع.</p>
+        <button id="btn-init-system" class="btn" style="padding: 10px 20px; font-size: 13px;">تشغيل الكاميرا والمستشعرات</button>
     </div>
 
     <script>
@@ -335,7 +324,6 @@
         const valDistance = document.getElementById('val-distance');
         const valBearing = document.getElementById('val-bearing');
         const valHeading = document.getElementById('val-heading');
-        const categorySelect = document.getElementById('target-category');
 
         function resizeCanvas() {
             canvasElem.width = window.innerWidth;
@@ -369,7 +357,7 @@
                             lng: position.coords.longitude
                         };
                         statusBadge.classList.add('active');
-                        statusText.textContent = "GPS متصل بحرية";
+                        statusText.textContent = "GPS متصل";
                         updateNavigation();
                     },
                     (err) => {
@@ -381,20 +369,16 @@
             }
         }
 
-        // التعامل مع القائمة المنسدلة للخيارات السريعة (مثل القبلة)
-        categorySelect.addEventListener('change', (e) => {
-            const val = e.target.value;
-            if (val === 'qibla') {
-                document.getElementById('target-name').value = "اتجاه القبلة";
-                document.getElementById('target-desc').value = "الكعبة المشرفة - مكة المكرمة";
-                // إحداثيات الكعبة المشرفة الثابتة
-                targetLocation = { lat: 21.4225, lng: 39.8262 };
-                updateNavigation();
-                speak("تم تحديد اتجاه القبلة بنجاح.");
-            }
+        // زر تحديد القبلة السريع
+        document.getElementById('btn-qibla').addEventListener('click', () => {
+            document.getElementById('target-name').value = "اتجاه القبلة";
+            document.getElementById('target-desc').value = "الكعبة المشرفة - مكة";
+            targetLocation = { lat: 21.4225, lng: 39.8262 };
+            updateNavigation();
+            speak("تم تحديد اتجاه القبلة.");
         });
 
-        // رفع صورة الهدف
+        // رفع صورة الهدف اختيارياً
         document.getElementById('target-img-file').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
@@ -402,7 +386,6 @@
                 reader.onload = function(event) {
                     targetImageObj = new Image();
                     targetImageObj.src = event.target.result;
-                    alert("تم إرفاق صورة الهدف بنجاح.");
                 };
                 reader.readAsDataURL(file);
             }
@@ -414,9 +397,9 @@
                 document.getElementById('target-lat').value = userLocation.lat;
                 document.getElementById('target-lng').value = userLocation.lng;
                 targetLocation = { lat: userLocation.lat, lng: userLocation.lng };
-                speak("تم حفظ موقعك الحالي كهدف.");
+                speak("تم حفظ الموقع الحالي.");
             } else {
-                alert("جاري التقاط إشارة الـ GPS...");
+                alert("جاري التقاط GPS...");
             }
         });
 
@@ -475,7 +458,7 @@
 
             const now = Date.now();
             if (voiceEnabled && now - lastVoiceTime > 8000) {
-                speak(`المسافة المتبقية ${Math.round(distanceToTarget)} متراً`);
+                speak(`المسافة ${Math.round(distanceToTarget)} متراً`);
                 lastVoiceTime = now;
             }
         }
@@ -484,7 +467,7 @@
             ctx.clearRect(0, 0, canvasElem.width, canvasElem.height);
             if (targetLocation && userLocation) {
                 const centerX = canvasElem.width / 2;
-                const centerY = canvasElem.height / 2;
+                const centerY = canvasElem.height / 3; /* رفع نقطة الهدف لأعلى الكاميرا كي لا تحجبها اللوحة السفلية */
                 const diffAngle = (targetBearing - deviceHeading + 360) % 360;
                 const normalizedAngle = diffAngle > 180 ? diffAngle - 360 : diffAngle;
                 const fov = 60;
@@ -493,27 +476,26 @@
                 ctx.save();
                 if (Math.abs(normalizedAngle) < fov) {
                     ctx.beginPath();
-                    ctx.arc(screenX, centerY - 40, 18, 0, Math.PI * 2);
+                    ctx.arc(screenX, centerY, 15, 0, Math.PI * 2);
                     ctx.fillStyle = "rgba(0, 255, 136, 0.4)";
                     ctx.fill();
                     ctx.strokeStyle = "#00ff88";
                     ctx.stroke();
 
-                    // عرض صورة الهدف المصغرة إذا تم إرفاقها
                     if (targetImageObj) {
-                        ctx.drawImage(targetImageObj, screenX - 12, centerY - 52, 24, 24);
+                        ctx.drawImage(targetImageObj, screenX - 10, centerY - 10, 20, 20);
                     }
 
                     ctx.fillStyle = "rgba(5, 11, 20, 0.9)";
-                    ctx.fillRect(screenX - 60, centerY + 5, 120, 32);
+                    ctx.fillRect(screenX - 50, centerY + 20, 100, 28);
                     ctx.strokeStyle = "#00ff88";
-                    ctx.strokeRect(screenX - 60, centerY + 5, 120, 32);
+                    ctx.strokeRect(screenX - 50, centerY + 20, 100, 28);
 
                     ctx.fillStyle = "#ffffff";
-                    ctx.font = "bold 10px Segoe UI";
+                    ctx.font = "bold 9px Segoe UI";
                     ctx.textAlign = "center";
-                    ctx.fillText(document.getElementById('target-name').value || "📍 هدف ميداني", screenX, centerY + 18);
-                    ctx.fillText(distanceToTarget < 1000 ? `${Math.round(distanceToTarget)} متر` : `${(distanceToTarget/1000).toFixed(2)} كم`, screenX, centerY + 30);
+                    ctx.fillText(document.getElementById('target-name').value || "📍 هدفك", screenX, centerY + 32);
+                    ctx.fillText(distanceToTarget < 1000 ? `${Math.round(distanceToTarget)} متر` : `${(distanceToTarget/1000).toFixed(2)} كم`, screenX, centerY + 43);
                 }
                 ctx.restore();
             }
@@ -535,12 +517,12 @@
             }
 
             if (!targetLocation) {
-                alert("يرجى إحديد الإحداثيات أو اختيار اتجاه القبلة أو حفظ الموقع الحالي.");
+                alert("يرجى تحديد الإحداثيات أو حفظ الموقع الحالي.");
                 return;
             }
 
             updateNavigation();
-            speak("تم بدء التوجيه الميداني بنجاح.");
+            speak("تم بدء التتبع.");
         });
 
         document.getElementById('btn-clear').addEventListener('click', () => {
@@ -550,10 +532,9 @@
             document.getElementById('target-desc').value = '';
             document.getElementById('target-lat').value = '';
             document.getElementById('target-lng').value = '';
-            categorySelect.value = 'custom';
             valDistance.textContent = '-- م';
             valBearing.textContent = '--°';
-            speak("تمت إعادة الضبط.");
+            speak("تم المسح.");
         });
 
         function speak(text) {
